@@ -1,0 +1,40 @@
+{
+  "name": "electron-header-test",
+  "version": "1.0.0",
+  "description": "Electron에서 URL 로드 시 커스텀 헤더 추가 테스트",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.example.electron-header-test",
+    "productName": "HeaderTest",
+    "files": [
+      "main.js",
+      "preload.js",
+      "input.html",
+      "store.js",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}

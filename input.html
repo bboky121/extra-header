@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>URL / 헤더 입력</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "Segoe UI", sans-serif;
+      background: #1e1e2e;
+      color: #cdd6f4;
+      padding: 32px;
+      margin: 0;
+    }
+    h1 { color: #89b4fa; font-size: 20px; margin-bottom: 4px; }
+    p.desc { color: #a6adc8; font-size: 13px; margin-top: 0; margin-bottom: 24px; }
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: #a6adc8;
+    }
+    input[type="text"] {
+      background: #313244;
+      border: 1px solid #45475a;
+      color: #cdd6f4;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: "SF Mono", Consolas, monospace;
+      outline: none;
+      width: 100%;
+    }
+    input[type="text"]:focus { border-color: #89b4fa; }
+    .field { margin-bottom: 20px; }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .header-row .key-input { flex: 0 0 38%; }
+    .header-row .value-input { flex: 1; }
+    .header-row .colon { color: #6c7086; }
+
+    .icon-btn {
+      flex: 0 0 auto;
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .remove-btn {
+      background: #45475a;
+      color: #f38ba8;
+    }
+    .remove-btn:hover { background: #585b70; }
+
+    .add-btn {
+      background: #313244;
+      color: #a6e3a1;
+      border: 1px dashed #45475a;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .add-btn:hover { border-color: #a6e3a1; }
+
+    .actions { margin-top: 28px; }
+    button.primary {
+      background: #89b4fa;
+      color: #1e1e2e;
+      border: none;
+      padding: 10px 22px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button.primary:hover { background: #74a8fb; }
+
+    #status {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #f38ba8;
+      min-height: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>페이지 이동 (커스텀 헤더 포함)</h1>
+  <p class="desc">이동할 URL과 함께 전송할 헤더를 자유롭게 추가/삭제하세요. 입력값은 자동 저장되며, 메뉴 &gt; 첫 화면으로 를 누르면 언제든 이 화면으로 돌아올 수 있습니다.</p>
+
+  <div class="field">
+    <label for="url">이동할 URL</label>
+    <input type="text" id="url" placeholder="https://example.com" />
+  </div>
+
+  <div class="field">
+    <label>헤더 목록</label>
+    <div id="headerList"></div>
+    <button type="button" class="add-btn" id="addHeaderBtn">+ 헤더 추가</button>
+  </div>
+
+  <div class="actions">
+    <button class="primary" id="goBtn">이 헤더로 이동</button>
+    <div id="status"></div>
+  </div>
+
+  <template id="headerRowTemplate">
+    <div class="header-row">
+      <input type="text" class="key-input" placeholder="Header-Name" />
+      <span class="colon">:</span>
+      <input type="text" class="value-input" placeholder="value" />
+      <button type="button" class="icon-btn remove-btn" title="삭제">✕</button>
+    </div>
+  </template>
+
+  <script>
+    const urlInput = document.getElementById('url')
+    const headerList = document.getElementById('headerList')
+    const addHeaderBtn = document.getElementById('addHeaderBtn')
+    const goBtn = document.getElementById('goBtn')
+    const status = document.getElementById('status')
+    const rowTemplate = document.getElementById('headerRowTemplate')
+
+    function addHeaderRow(key = '', value = '') {
+      const node = rowTemplate.content.cloneNode(true)
+      const row = node.querySelector('.header-row')
+      const keyInput = row.querySelector('.key-input')
+      const valueInput = row.querySelector('.value-input')
+      const removeBtn = row.querySelector('.remove-btn')
+
+      keyInput.value = key
+      valueInput.value = value
+
+      removeBtn.addEventListener('click', () => {
+        row.remove()
+      })
+
+      headerList.appendChild(row)
+    }
+
+    function getHeadersFromForm() {
+      const rows = headerList.querySelectorAll('.header-row')
+      const headers = []
+      rows.forEach((row) => {
+        const key = row.querySelector('.key-input').value.trim()
+        const value = row.querySelector('.value-input').value
+        if (key.length > 0) {
+          headers.push({ key, value })
+        }
+      })
+      return headers
+    }
+
+    addHeaderBtn.addEventListener('click', () => addHeaderRow())
+
+    // 화면 진입 시 저장된 마지막 입력값 복원
+    window.api.getSavedInput().then((data) => {
+      urlInput.value = (data && data.url) || ''
+      const headers = (data && data.headers) || []
+      if (headers.length > 0) {
+        headers.forEach((h) => addHeaderRow(h.key, h.value))
+      } else {
+        addHeaderRow()
+      }
+    })
+
+    goBtn.addEventListener('click', async () => {
+      const url = urlInput.value.trim()
+      const headers = getHeadersFromForm()
+
+      if (!url) {
+        status.textContent = 'URL을 입력해주세요.'
+        return
+      }
+
+      status.style.color = '#a6adc8'
+      status.textContent = '이동 중...'
+
+      try {
+        await window.api.navigate({ url, headers })
+      } catch (err) {
+        status.style.color = '#f38ba8'
+        status.textContent = '이동 실패: ' + err.message
+      }
+    })
+
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') goBtn.click()
+    })
+  </script>
+</body>
+</html>
