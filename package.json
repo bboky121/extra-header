@@ -1,5 +1,5 @@
 {
-  "name": "electron-header-test",
+  "name": "extra-header",
   "version": "1.0.0",
   "description": "Electron에서 URL 로드 시 커스텀 헤더 추가 테스트",
   "main": "main.js",
@@ -15,7 +15,7 @@
     "electron-builder": "^24.13.3"
   },
   "build": {
-    "appId": "com.example.electron-header-test",
+    "appId": "com.example.extra-header",
     "productName": "HeaderTest",
     "files": [
       "main.js",
