@@ -42,6 +42,8 @@ jobs:
 
       - name: 빌드 (${{ matrix.os }})
         run: ${{ matrix.build-cmd }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 빌드 결과물 업로드 (Artifacts)
         uses: actions/upload-artifact@v4
